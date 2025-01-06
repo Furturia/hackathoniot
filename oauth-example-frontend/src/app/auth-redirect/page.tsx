@@ -16,8 +16,6 @@ const AuthRedirectPage = () => {
 			credentials: 'include',
 		});
 
-		console.log(res);
-
 		if (res.ok) {
 			navigator.push('/me');
 		}
