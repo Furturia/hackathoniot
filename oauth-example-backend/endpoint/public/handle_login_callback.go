@@ -10,7 +10,6 @@ import (
 
 	"github.com/bsthun/gut"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/oauth2"
 )
 
@@ -71,27 +70,10 @@ func HandleLoginCallback(c *fiber.Ctx) error {
 		}
 	}
 
-	// * generate jwt token
-	claims := &shared.UserClaims{
-		UserId: user.Id,
-	}
+	// save logging
 
-	// Sign JWT token
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedJwtToken, err := jwtToken.SignedString([]byte(*common.Config.JWTSecret))
-	if err != nil {
-		return gut.Err(false, "failed to sign jwt token", err)
-	}
-
-	// * set cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "login",
-		Value:    signedJwtToken,
-		Path:     "/",      // Ensure it's accessible across the application
-		SameSite: "Strict", // Adjust based on your needs
-	})
 
 	return c.JSON(response.Success(map[string]string{
-		"token": signedJwtToken,
+		"message": "login Successful!",
 	}))
 }
