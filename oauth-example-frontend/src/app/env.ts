@@ -3,7 +3,7 @@ type ENV_Data = {
 };
 
 const environment: ENV_Data = {
-	backend_url: 'http://localhost:4000',
+  backend_url: "http://localhost:4000",
 };
 
 export { environment };
