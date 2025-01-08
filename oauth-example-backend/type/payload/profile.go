@@ -5,5 +5,5 @@ type Profile struct {
 	Oid       *string `json:"oid"`
 	Firstname *string `json:"firstname"`
 	Lastname  *string `json:"lastname"`
-	PhotoUrl  *string `json:"photoUrl"`
 }
+	

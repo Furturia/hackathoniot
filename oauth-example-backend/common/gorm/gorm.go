@@ -44,6 +44,7 @@ func Init() {
 	if *common.Config.Environment {
 		if err := db.AutoMigrate(
 			new(table.User),
+			new(table.Logging),
 		); err != nil {
 			gut.Fatal("Failed to migrate database", err)
 		}
