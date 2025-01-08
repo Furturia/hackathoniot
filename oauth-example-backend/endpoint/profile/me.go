@@ -27,7 +27,6 @@ func HandleProfileMe(c *fiber.Ctx) error {
 		Oid:       user.Oid,
 		Firstname: user.Firstname,
 		Lastname:  user.Lastname,
-		PhotoUrl:  user.PhotoUrl,
 	}
 
 	return c.JSON(response.Success(mappedUser))

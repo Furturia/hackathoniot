@@ -62,7 +62,6 @@ func HandleLoginCallback(c *fiber.Ctx) error {
 			Firstname: oidcClaims.FirstName,
 			Lastname:  oidcClaims.Lastname,
 			Email:     oidcClaims.Email,
-			PhotoUrl:  oidcClaims.Picture,
 			CreatedAt: nil,
 			UpdatedAt: nil,
 		}

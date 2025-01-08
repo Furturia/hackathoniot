@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"oauth-example/common/fiber/middleware"
+	"oauth-example/endpoint/logging"
 	"oauth-example/endpoint/profile"
 	"oauth-example/endpoint/public"
 
@@ -18,5 +19,12 @@ func Init(router fiber.Router) {
 
 	profileRoutes := api.Group("profile", middleware.Jwt())
 	profileRoutes.Get("/me", profile.HandleProfileMe)
+
+	loggingRoutes := api.Group("log", middleware.Jwt())
+	loggingRoutes.Post("/create", logging.HandleLoggingCreate)
+	loggingRoutes.Get("/get", logging.HandleLoggingGetLogs)
+
+	imageRoutes := api.Group("image", middleware.Jwt())
+	imageRoutes.Get("/:name",logging.HandleLoggingGetImage)
 
 }

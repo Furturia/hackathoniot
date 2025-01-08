@@ -23,6 +23,7 @@ func Init() {
 	app.Use(logger.New())
 	app.Use(middleware.Recover())
 	app.Use(middleware.Cors())
+	app.Static("/image","../../images")
 
 	app.All("/", func(c *fiber.Ctx) error {
 		return c.JSON(response.Success("Welcome to OAuth Example"))
