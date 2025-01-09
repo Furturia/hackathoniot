@@ -73,5 +73,6 @@ func HandleProfileGetProfile(c *fiber.Ctx) error {
 		"user_id": user.Id,
 		"email":   *oidcClaims.Email,
 		"name":    fmt.Sprintf("%s", *oidcClaims.FirstName),
+		"role":    user.Role,
 	})
 }

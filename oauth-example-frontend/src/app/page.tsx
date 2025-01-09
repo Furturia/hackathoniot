@@ -24,7 +24,7 @@ const Home = () => {
           showButton ? "translate-y-0" : "translate-y-10"
         }`}
       >
-        OAuth Example App
+        Auth Door App
       </h1>
       <div
         className={`transition-opacity duration-500 ${

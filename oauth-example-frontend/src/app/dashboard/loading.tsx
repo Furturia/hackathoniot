@@ -1,10 +1,11 @@
+
 'use client'
 import React from 'react'
-import Loader from '../components/Loading'
+import Loader2 from '../components/Loading2'
 
 const loading = () => {
   return (
-    <Loader/>
+    <Loader2/>
   )
 }
 
