@@ -16,10 +16,14 @@ func Init(router fiber.Router) {
 	loginRoutes.Post("/callback", public.HandleLoginCallback)
 
 	loggingRoutes := api.Group("log")
-	loggingRoutes.Post("/create", logging.HandleLoggingCreate)
 	loggingRoutes.Get("/get", logging.HandleLoggingGetLogs)
 
 	imageRoutes := api.Group("image")
 	imageRoutes.Get("/:name",logging.HandleLoggingGetImage)
+
+	emailRoutes := api.Group("email")
+	emailRoutes.Post("/send",public.HandleMailSendMail)
+
+	api.Post("/profile",public.HandleProfileGetProfile)
 
 }

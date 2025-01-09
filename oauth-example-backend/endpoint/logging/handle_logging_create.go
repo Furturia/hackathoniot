@@ -4,25 +4,26 @@ import (
 	"fmt"
 	"oauth-example/common"
 	"oauth-example/type/response"
-	"oauth-example/type/shared"
 	"oauth-example/type/table"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/bsthun/gut"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 func HandleLoggingCreate(c *fiber.Ctx) error {
-	// Parse JWT token from context
-	claims := c.Locals("l").(*jwt.Token).Claims.(*shared.UserClaims)
+	userIdStr := c.FormValue("user_id") // สมมติว่า user_id เป็นประเภท int
+	if userIdStr == "" {
+		return gut.Err(false, "Failed to retrieve user_id from context", nil)
+	}
 
-	// Find user in database
-	user := new(table.User)
-	if tx := common.Database.First(user, "id = ?", claims.UserId); tx.Error != nil {
-		return gut.Err(false, "Failed to find user", tx.Error)
+	// Convert userId to uint64
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)  // base 10, 64-bit unsigned integer
+	if err != nil {
+		return gut.Err(false, "Failed to convert user_id to uint64", err)
 	}
 
 	// Parse uploaded file
@@ -46,7 +47,7 @@ func HandleLoggingCreate(c *fiber.Ctx) error {
 
 	// Create new logging entry
 	logEntry := &table.Logging{
-		UserId:    user.Id,
+		UserId:    &userId,
 		ImageName: &fileName,
 	}
 
@@ -65,4 +66,3 @@ func HandleLoggingCreate(c *fiber.Ctx) error {
 		},
 	}))
 }
-
