@@ -92,7 +92,7 @@
 #define RELAY_PIN 14
 
 
-const char* ssid = "SIT-9";  // กำหนด SSID Wi-Fi ของคุณ
+const char* ssid = "SIT-IIoT";  // กำหนด SSID Wi-Fi ของคุณ
 const char* password = "Sit1To#Down!9";  // กำหนดรหัสผ่าน Wi-Fi ของคุณ
 
 // สร้าง HTTP Server
@@ -106,7 +106,8 @@ void sendImageToClient(AsyncWebServerRequest *request, camera_fb_t *fb) {
 // ฟังก์ชันเปิดกลอนประตู
 void unlockDoor() {
   digitalWrite(RELAY_PIN, HIGH);  // เปิดกลอน
-  delay(5000);  // เปิด 5 วินาที
+  delay(1000);  // รอ 1 วินาที
+  yield();  // ให้ระบบทำงานต่อไป
   digitalWrite(RELAY_PIN, LOW);  // ปิดกลอน
 }
 
@@ -186,5 +187,8 @@ void setup() {
 }
 
 void loop() {
+
   // รัน server และทำงานตามคำขอ
+  delay(1000);  // รอ 1 วินาที (ควรใช้เวลาสั้น ๆ)
+
 }
