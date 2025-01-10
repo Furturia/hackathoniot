@@ -4,6 +4,7 @@ import (
 	"oauth-example/common"
 	"oauth-example/endpoint/logging"
 	"oauth-example/endpoint/public"
+	"oauth-example/endpoint/sensor"
 	"oauth-example/type/table"
 
 	"github.com/bsthun/gut"
@@ -26,6 +27,9 @@ func Init(router fiber.Router) {
 
 	emailRoutes := api.Group("email")
 	emailRoutes.Post("/send", public.HandleMailSendMail)
+
+	sensorRoutes := api.Group("sensor")
+	sensorRoutes.Get("/get",sensor.HandleSensorGetValue)
 
 	api.Post("/profile", public.HandleProfileGetProfile)
 

@@ -19,8 +19,10 @@ func Cors() fiber.Handler {
 	}
 
 	config := cors.Config{
-		AllowOrigins:     origins,
+		AllowOrigins:     "http://localhost:3000, https://authdoor-frontend.scnd.space",
 		AllowCredentials: true,
+		
+		AllowHeaders: "Content-Type, Authorization",
 	}
 
 	return cors.New(config)
