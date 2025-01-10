@@ -182,6 +182,12 @@ void setup() {
     esp_camera_fb_return(fb);
   });
 
+  server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request){
+    //เปิดประตู
+    unlockDoor();
+  });
+
+
   // เริ่มต้น HTTP Server
   server.begin();
 }
