@@ -175,8 +175,6 @@ void setup() {
     // ส่งภาพกลับไปยัง client
     sendImageToClient(request, fb);
 
-    //เปิดประตู
-    unlockDoor();
 
     // คืนค่าหน่วยความจำหลังใช้งาน
     esp_camera_fb_return(fb);
