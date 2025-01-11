@@ -132,7 +132,7 @@ void setup() {
   });
 
   server.on("/unlock", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (measureDistance() < 50) {  // ถ้าระยะห่างน้อยกว่า 50 cm
+    if (measureDistance() < 20) {  // ถ้าระยะห่างน้อยกว่า 20 cm
       unlockDoor();
       request->send(200, "text/plain", "Door unlocked!");
     } else {
