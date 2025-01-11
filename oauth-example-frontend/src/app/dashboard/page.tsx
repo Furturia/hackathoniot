@@ -25,13 +25,13 @@ const Dashboard = () => {
   useEffect(() => {
     handleGetLogs();
   }, []);
-  const limitData = 5
+  const limitData = 20;
   const displayedLogs = showAll ? logs : logs.slice(0, limitData);
 
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <Sidebar/>
+      <Sidebar />
 
       {/* Main Content */}
       <div className="ml-64 flex-1 p-8">
@@ -40,18 +40,16 @@ const Dashboard = () => {
             <table className="min-w-full border-collapse border border-gray-200">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="px-4 py-2 border border-gray-200">#</th>
                   <th className="px-4 py-2 border border-gray-200">อีเมล์</th>
                   <th className="px-4 py-2 border border-gray-200">วัน-เวลา</th>
                   <th className="px-4 py-2 border border-gray-200">รูป</th>
+                  <th className="px-4 py-2 border border-gray-200">สถานะ</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedLogs.map((ele, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border border-gray-200 text-center">
-                      {i + 1}
-                    </td>
+         
                     <td className="px-4 py-2 border border-gray-200">
                       <div className="flex items-center">
                         {ele.user.email}
@@ -80,6 +78,17 @@ const Dashboard = () => {
                       >
                         View
                       </button>
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 ">
+                      <div className="flex justify-center items-center">
+                        <span
+                          className={`inline-block w-4 h-4 rounded-full ${
+                            ele.status === "true"
+                              ? "bg-green-500"
+                              : "bg-red-500"
+                          }`}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
