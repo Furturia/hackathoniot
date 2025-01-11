@@ -6,6 +6,7 @@ import mockImg from "./mock-img/1234.png";
 import Loader from "../components/Loading";
 import Loader2 from "../components/Loading2";
 import Swal from "sweetalert2";
+import { convertBase64ToBlob } from "./covertBase64ToBlob";
 
 const AuthRedirectPage = () => {
   const navigator = useRouter();
@@ -19,6 +20,13 @@ const AuthRedirectPage = () => {
   const [timer, setTimer] = useState(60);
   const [role, setRole] = useState(""); // เพิ่ม state สำหรับ role
   const code = useSearchParams()?.get("code");
+
+  const [count, setCount] = useState(0);
+
+  const ConvertBase64ToBlob = async (base64: string) => {
+    const res = await convertBase64ToBlob(base64);
+    return res;
+  };
 
   const fetchProfile = async () => {
     if (!code) {
@@ -56,22 +64,60 @@ const AuthRedirectPage = () => {
       const formData = new FormData();
       formData.append("user_id", userId);
 
-      // ตรวจสอบว่ามี mockImg.src หรือไม่
-      if (!mockImg?.src) {
-        throw new Error("Image source not found");
-      }
-
       try {
         // ดึงไฟล์รูปภาพ
-        const response = await fetch(mockImg.src);
+        const response = await fetch(
+          `${environment.backend_url}/api/sensor/get`
+        );
         if (!response.ok) {
           throw new Error(
             `Failed to fetch image: ${response.status} ${response.statusText}`
           );
         }
 
+        const data = await response.json();
+        if (!data.success) {
+          formData.append("status", "false");
+
+          const res = await fetch(
+            `${environment.backend_url}/api/public/login/callback`,
+            {
+              method: "POST",
+              body: formData,
+              credentials: "include",
+            }
+          );
+
+          if (count == 3) {
+            await Swal.fire({
+              icon: "error",
+              title: "ไม่สามารถเข้าใช้งานได้",
+              text: "คุณไม่ได้อยู่ในบริเวณที่สามารถเข้าใช้งานได้",
+              confirmButtonText: "รับทราบ",
+            });
+
+            navigator.push("/");
+            return;
+          }
+
+          if (res.ok) {
+            setCount((count) => {
+              return count + 1;
+            });
+            handleCallback();
+          } else {
+            // แสดงข้อมูล error ที่ละเอียดขึ้น
+            const errorData = await res.json().catch(() => null);
+            throw new Error(
+              `API Error: ${res.status} ${res.statusText} ${
+                errorData ? JSON.stringify(errorData) : ""
+              }`
+            );
+          }
+        }
+
         // แปลงเป็น Blob
-        const blob = await response.blob();
+        const blob = await ConvertBase64ToBlob(data.data)
 
         // ตรวจสอบขนาดและประเภทของ Blob
         if (blob.size === 0) {
@@ -81,6 +127,8 @@ const AuthRedirectPage = () => {
         // เพิ่มไฟล์ลงใน FormData
         const fileName = `${generateRandomSixDigits()}.jpg`;
         formData.append("image", blob, fileName);
+
+        formData.append("status", "true");
 
         // ส่งข้อมูลไปยัง API
         const res = await fetch(
@@ -112,72 +160,6 @@ const AuthRedirectPage = () => {
       console.error("Fatal error in handleCallback:", error);
       // แสดง error message ให้ user ทราบ
       alert(`เกิดข้อผิดพลาด: ${error.message}`);
-    }
-  };
-
-  const handleCallbackUseCamera = async () => {
-    try {
-      // Check if we're in the browser
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      // Use window.navigator instead of navigator directly
-      const stream = await window.navigator.mediaDevices.getUserMedia({
-        video: true,
-      });
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      video.play();
-
-      await new Promise((resolve) => (video.onloadedmetadata = resolve));
-
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      stream.getTracks().forEach((track) => track.stop());
-
-      // Fix: Properly type the blob Promise
-      const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            throw new Error("Failed to create blob from canvas");
-          }
-        }, "image/jpeg")
-      );
-
-      const formData = new FormData();
-      formData.append("user_id", userId);
-      formData.append("image", blob, `${generateRandomSixDigits()}.jpg`);
-
-      const res = await fetch(
-        `${environment.backend_url}/api/public/login/callback`,
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        }
-      );
-
-      if (res.ok) {
-        navigator.push("/"); // Use the router instance instead of navigator
-      } else {
-        console.error("Failed to send callback:", res.status, res.statusText);
-      }
-    } catch (error) {
-      if (error.name === "NotAllowedError") {
-        alert(
-          "จำเป็นต้องอนุญาติการใช้งานกล้องของอุปกรณ์เพื่อบันทึกการเข้าใช้งาน"
-        );
-      } else {
-        console.error("Error accessing camera or sending callback:", error);
-      }
     }
   };
 
@@ -223,12 +205,6 @@ const AuthRedirectPage = () => {
     setLoading2(true);
 
     if (inputOtp === otp) {
-      // handleCallbackUseCamera();
-      Swal.fire({
-        icon: "success",
-        title: "Success",
-        text: "กำลังกลับสู่หน้าหลัก...",
-      });
       handleCallback();
       setLoading2(false);
     } else {

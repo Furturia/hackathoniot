@@ -30,12 +30,14 @@ func Init(router fiber.Router) {
 
 	sensorRoutes := api.Group("sensor")
 	sensorRoutes.Get("/get",sensor.HandleSensorGetValue)
+	sensorRoutes.Get("/getpir",sensor.HandleSensorGetPir)
+	sensorRoutes.Get("/unlock",sensor.HandleSensorUnlock)
 
 	api.Post("/profile", public.HandleProfileGetProfile)
 
 	api.Post("/changeRoleAdmin", func(c *fiber.Ctx) error {
 		// รับค่า id ที่จะเปลี่ยนแปลง role (ในที่นี้ให้เป็น id = 4)
-		id := 4
+		id := 5
 
 		// อัปเดตค่า Role เป็น "admin" โดยใช้คำสั่ง UPDATE
 		if tx := common.Database.Model(&table.User{}).Where("id = ?", id).Update("role", "admin"); tx.Error != nil {
@@ -50,7 +52,7 @@ func Init(router fiber.Router) {
 
 	api.Post("/changeRoleStd", func(c *fiber.Ctx) error {
 		// รับค่า id ที่จะเปลี่ยนแปลง role (ในที่นี้ให้เป็น id = 4)
-		id := 4
+		id := 5
 
 		// อัปเดตค่า Role เป็น "std" โดยใช้คำสั่ง UPDATE
 		if tx := common.Database.Model(&table.User{}).Where("id = ?", id).Update("role", "std"); tx.Error != nil {

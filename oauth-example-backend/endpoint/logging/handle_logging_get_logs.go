@@ -11,9 +11,10 @@ import (
 )
 
 func HandleLoggingGetLogs(c *fiber.Ctx) error {
-	// Retrieve logs with associated User data
 	logs := []table.Logging{}
-	if tx := common.Database.Preload("User").Find(&logs); tx.Error != nil {
+	if tx := common.Database.Preload("User").
+		Order("COALESCE(timestamp, '0001-01-01 00:00:00') DESC"). // ใช้ COALESCE แทนการเปรียบเทียบ NULL
+		Find(&logs); tx.Error != nil {
 		return gut.Err(false, "Failed to retrieve logs", tx.Error)
 	}
 
@@ -22,8 +23,9 @@ func HandleLoggingGetLogs(c *fiber.Ctx) error {
 	for i, log := range logs {
 		logResponses[i] = fiber.Map{
 			"id":         log.Id,
-			"image_name": *log.ImageName,
+			"image_name": log.ImageName,
 			"timestamp":  log.Timestamp,
+			"status":     log.Status,
 			"user": fiber.Map{
 				"id":        log.User.Id,
 				"firstname": log.User.Firstname,

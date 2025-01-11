@@ -1,7 +1,6 @@
 package sensor
 
 import (
-	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -10,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func HandleSensorGetValue(c *fiber.Ctx) error {
+func HandleSensorGetPir(c *fiber.Ctx) error {
 	// สร้าง Resty client พร้อมการตั้งค่า timeout และ retry
 	client := resty.New().
 		SetTimeout(60 * time.Second).         // กำหนด timeout 1 นาที
@@ -19,7 +18,7 @@ func HandleSensorGetValue(c *fiber.Ctx) error {
 		SetRetryMaxWaitTime(10 * time.Second) // กำหนดเวลารอ retry สูงสุด 10 วินาที
 
 	// ส่งคำขอ GET ไปยัง IP address ของ sensor
-	resp, err := client.R().Get("http://10.4.25.54:80/start_motion")
+	resp, err := client.R().Get("http://10.4.25.54:80/pir_status")
 
 	// หากเกิดข้อผิดพลาด
 	if err != nil {
@@ -39,13 +38,7 @@ func HandleSensorGetValue(c *fiber.Ctx) error {
 		"status_code": resp.StatusCode(),
 	}
 
-	if strings.Contains(contentType, "image/jpg") || strings.Contains(contentType, "image/jpeg") {
-		// กรณีที่เป็นรูปภาพ แปลงเป็น base64
-		imageBase64 := base64.StdEncoding.EncodeToString(resp.Body())
-		response["content_type"] = "image/jpg"
-		response["data"] = imageBase64
-		response["image_size"] = len(resp.Body())
-	} else if strings.Contains(contentType, "text/plain") {
+	if strings.Contains(contentType, "text/plain") {
 		// กรณีที่เป็นข้อความ
 		response["content_type"] = "text/plain"
 		response["data"] = string(resp.Body())
