@@ -12,13 +12,10 @@ import (
 func HandleSensorUnlock(c *fiber.Ctx) error {
 	// สร้าง Resty client พร้อมการตั้งค่า timeout และ retry
 	client := resty.New().
-		SetTimeout(60 * time.Second).         // กำหนด timeout 1 นาที
-		SetRetryCount(3).                     // พยายาม retry 3 ครั้ง
-		SetRetryWaitTime(2 * time.Second).    // เว้นระยะ 2 วินาทีระหว่าง retry
-		SetRetryMaxWaitTime(10 * time.Second) // กำหนดเวลารอ retry สูงสุด 10 วินาที
+		SetTimeout(10 * time.Second)// กำหนดเวลารอ retry สูงสุด 10 วินาที
 
 	// ส่งคำขอ GET ไปยัง IP address ของ sensor
-	resp, err := client.R().Get("http://10.4.25.54:80/unlock")
+	resp, err := client.R().Get("http://authdoor-sensor.scnd.space/unlock")
 
 	// หากเกิดข้อผิดพลาด
 	if err != nil {

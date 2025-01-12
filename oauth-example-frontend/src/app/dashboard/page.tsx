@@ -4,31 +4,48 @@ import { environment } from "../env";
 import Loader2 from "../components/Loading2";
 import info from "../icons/info.svg";
 import Sidebar from "../components/Sidebar";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Dashboard = () => {
+  const router = useRouter();
+    const searchParams = useSearchParams();
   const [logs, setLogs] = useState([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // เพิ่มสถานะการโหลด
 
   const handleGetImage = (image_name: string) => {
     return `${environment.backend_url}/api/image/${image_name}`;
   };
 
   const handleGetLogs = async () => {
-    const res = await fetch(`${environment.backend_url}/api/log/get`);
-    const data = await res.json();
-    setLogs(data.data.logs);
-    console.log(data.data.logs);
+    try {
+      const res = await fetch(`${environment.backend_url}/api/log/get`);
+      const data = await res.json();
+      setLogs(data.data.logs);
+      console.log(data.data.logs);
+    } catch (error) {
+      console.error("Failed to fetch logs:", error);
+    }
   };
 
   useEffect(() => {
-    handleGetLogs();
-  }, []);
+    const source = searchParams.get("source");
+
+    if (source !== "auth-redirect" && source !== "dashboard-stat") {
+      router.push("/"); 
+    } else {
+      handleGetLogs().finally(() => setIsLoading(false));
+    }
+  }, [searchParams, router]);
+
   const limitData = 20;
   const displayedLogs = showAll ? logs : logs.slice(0, limitData);
 
-  return (
+  return isLoading ? (
+    <Loader2 />
+  ) : (
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <Sidebar />
@@ -37,6 +54,7 @@ const Dashboard = () => {
       <div className="ml-64 flex-1 p-8">
         {logs.length > 0 ? (
           <div className="overflow-x-auto">
+            {/* Table */}
             <table className="min-w-full border-collapse border border-gray-200">
               <thead>
                 <tr className="bg-gray-100">
@@ -49,7 +67,6 @@ const Dashboard = () => {
               <tbody>
                 {displayedLogs.map((ele, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-         
                     <td className="px-4 py-2 border border-gray-200">
                       <div className="flex items-center">
                         {ele.user.email}
@@ -79,7 +96,7 @@ const Dashboard = () => {
                         View
                       </button>
                     </td>
-                    <td className="px-4 py-2 border border-gray-200 ">
+                    <td className="px-4 py-2 border border-gray-200">
                       <div className="flex justify-center items-center">
                         <span
                           className={`inline-block w-4 h-4 rounded-full ${
@@ -117,10 +134,14 @@ const Dashboard = () => {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="bg-white rounded-lg overflow-hidden"
+            className="bg-white rounded-lg overflow-hidden max-w-[80vw] max-h-[80vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <img src={selectedImage} alt="Preview" className="w-full h-auto" />
+            <img
+              src={selectedImage}
+              alt="Preview"
+              className="w-full h-auto object-contain max-h-[70vh]"
+            />
             <div className="p-4 text-right">
               <button
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"

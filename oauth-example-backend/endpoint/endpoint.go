@@ -30,7 +30,7 @@ func Init(router fiber.Router) {
 
 	sensorRoutes := api.Group("sensor")
 	sensorRoutes.Get("/get",sensor.HandleSensorGetValue)
-	sensorRoutes.Get("/getpir",sensor.HandleSensorGetPir)
+	sensorRoutes.Get("/getdis",sensor.HandleSensorGetPir)
 	sensorRoutes.Get("/unlock",sensor.HandleSensorUnlock)
 
 	api.Post("/profile", public.HandleProfileGetProfile)

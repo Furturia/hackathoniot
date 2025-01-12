@@ -60,7 +60,7 @@ const Home = () => {
             onClick={() => setShowModal(true)}
             disabled={showModal}
           >
-            Sign in With KMUTT Account
+            Sign in With SIT Account
           </button>
         </div>
       </section>

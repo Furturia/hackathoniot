@@ -3,8 +3,8 @@ type ENV_Data = {
 };
 
 const environment: ENV_Data = {
-  // backend_url: "https://authdoor-frontend.scnd.space",
-  backend_url:"http://localhost:4000"
+  backend_url: "https://authdoor-frontend.scnd.space",
+  // backend_url:"http://localhost:4000"
 };
 
 export { environment };
