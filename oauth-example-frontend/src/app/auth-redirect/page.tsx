@@ -2,7 +2,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { environment } from "../env";
 import { useEffect, useState } from "react";
-import mockImg from "./mock-img/1234.png";
 import Loader from "../components/Loading";
 import Loader2 from "../components/Loading2";
 import Swal from "sweetalert2";
@@ -20,8 +19,6 @@ const AuthRedirectPage = () => {
   const [timer, setTimer] = useState(60);
   const [role, setRole] = useState(""); // เพิ่ม state สำหรับ role
   const code = useSearchParams()?.get("code");
-
-  const [count, setCount] = useState(0);
 
   const ConvertBase64ToBlob = async (base64: string) => {
     const res = await convertBase64ToBlob(base64);
@@ -60,77 +57,53 @@ const AuthRedirectPage = () => {
 
   const handleCallback = async () => {
     try {
-      // สร้าง FormData
+      setLoading2(true);
       const formData = new FormData();
       formData.append("user_id", userId);
 
       try {
-        // ดึงไฟล์รูปภาพ
+        const responsePir = await fetch(
+          `${environment.backend_url}/api/sensor/getdis`
+        );
+        const dataPir = await responsePir.json();
+
+        if (dataPir.data == "No object detected") {
+          formData.append("status", "false");
+
+          await fetch(`${environment.backend_url}/api/public/login/callback`, {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          });
+
+          await Swal.fire({
+            icon: "error",
+            title: "ไม่สามารถเข้าใช้งานได้",
+            text: "คุณไม่ได้อยู่ในบริเวณที่สามารถเข้าใช้งานได้",
+            confirmButtonText: "รับทราบ",
+          });
+
+          navigator.push("/");
+          return;
+        }
+
         const response = await fetch(
           `${environment.backend_url}/api/sensor/get`
         );
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch image: ${response.status} ${response.statusText}`
-          );
-        }
 
         const data = await response.json();
-        if (!data.success) {
-          formData.append("status", "false");
 
-          const res = await fetch(
-            `${environment.backend_url}/api/public/login/callback`,
-            {
-              method: "POST",
-              body: formData,
-              credentials: "include",
-            }
-          );
+        const blob = await ConvertBase64ToBlob(data.data);
 
-          if (count == 3) {
-            await Swal.fire({
-              icon: "error",
-              title: "ไม่สามารถเข้าใช้งานได้",
-              text: "คุณไม่ได้อยู่ในบริเวณที่สามารถเข้าใช้งานได้",
-              confirmButtonText: "รับทราบ",
-            });
-
-            navigator.push("/");
-            return;
-          }
-
-          if (res.ok) {
-            setCount((count) => {
-              return count + 1;
-            });
-            handleCallback();
-          } else {
-            // แสดงข้อมูล error ที่ละเอียดขึ้น
-            const errorData = await res.json().catch(() => null);
-            throw new Error(
-              `API Error: ${res.status} ${res.statusText} ${
-                errorData ? JSON.stringify(errorData) : ""
-              }`
-            );
-          }
-        }
-
-        // แปลงเป็น Blob
-        const blob = await ConvertBase64ToBlob(data.data)
-
-        // ตรวจสอบขนาดและประเภทของ Blob
         if (blob.size === 0) {
           throw new Error("Empty blob received");
         }
 
-        // เพิ่มไฟล์ลงใน FormData
         const fileName = `${generateRandomSixDigits()}.jpg`;
         formData.append("image", blob, fileName);
 
         formData.append("status", "true");
 
-        // ส่งข้อมูลไปยัง API
         const res = await fetch(
           `${environment.backend_url}/api/public/login/callback`,
           {
@@ -141,9 +114,15 @@ const AuthRedirectPage = () => {
         );
 
         if (res.ok) {
+          Swal.close();
+
+          await fetch(`${environment.backend_url}/api/sensor/unlock`);
+          await Swal.fire({
+            icon: "success",
+            title: "ปลดล็อกประตูแล้ว",
+          });
           navigator.push("/");
         } else {
-          // แสดงข้อมูล error ที่ละเอียดขึ้น
           const errorData = await res.json().catch(() => null);
           throw new Error(
             `API Error: ${res.status} ${res.statusText} ${
@@ -153,13 +132,18 @@ const AuthRedirectPage = () => {
         }
       } catch (error) {
         console.error("Error in callback process:", error);
-        // อาจจะเพิ่ม UI แสดง error ให้ user ทราบ
+        await Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          confirmButtonText: "ตกลง",
+        });
+        navigator.push("/");
         throw error;
       }
     } catch (error) {
       console.error("Fatal error in handleCallback:", error);
-      // แสดง error message ให้ user ทราบ
-      alert(`เกิดข้อผิดพลาด: ${error.message}`);
+    } finally {
+      setLoading2(false);
     }
   };
 
@@ -199,21 +183,30 @@ const AuthRedirectPage = () => {
     }
   };
 
-  const handleVerifyOTP = (event: React.FormEvent) => {
+  const handleVerifyOTP = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    setLoading2(true);
+    setLoading(true);
+    // setLoading2(true);
+    Swal.fire({
+      title: "Verifying...",
+      text: "Please wait while we verify your OTP.",
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     if (inputOtp === otp) {
-      handleCallback();
-      setLoading2(false);
+      await handleCallback();
     } else {
       Swal.fire({
         icon: "error",
         title: "Oops...",
         text: "รหัสยืนยันตัวตนไม่ถูกต้อง!",
       });
-      setLoading2(false);
+      // setLoading2(false);
+      setLoading(false);
     }
   };
 
@@ -242,7 +235,7 @@ const AuthRedirectPage = () => {
       const newInterval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
-            clearInterval(newInterval); // หยุด interval เมื่อถึง 0
+            clearInterval(newInterval);
             setResendAvailable(true);
             return 0;
           }
@@ -271,7 +264,6 @@ const AuthRedirectPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // แสดง UI ตาม role
   return loading ? (
     <Loader />
   ) : role === "admin" ? (
@@ -287,7 +279,9 @@ const AuthRedirectPage = () => {
         auth door
       </button>
       <button
-        onClick={() => navigator.push("/dashboard")}
+        onClick={() =>
+          navigator.push("/dashboard?source=auth-redirect&id=" + userId)
+        }
         className="w-full inline-flex justify-center mt-4 rounded-lg bg-green-500 px-3.5 py-2.5 text-sm font-medium text-white"
       >
         Go to Dashboard

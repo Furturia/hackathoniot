@@ -1,6 +1,8 @@
 "use client";
+import Loader2 from "@/app/components/Loading2";
 import Sidebar from "@/app/components/Sidebar";
 import { environment } from "@/app/env";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
   LineChart,
@@ -29,10 +31,13 @@ const Page = () => {
       },
     },
   ]);
+  const searchParams = useSearchParams()
   const [chartData, setChartData] = useState([]);
   const [statusChartData, setStatusChartData] = useState([]);
   const [statusTrendData, setStatusTrendData] = useState([]);
   const [timeFilter, setTimeFilter] = useState("last7days");
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true); // เพิ่มสถานะการโหลด
 
   // Fetch Logs
   const handleGetLogs = async () => {
@@ -90,7 +95,9 @@ const Page = () => {
     });
 
     const formattedData = Object.values(groupedData).sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
+      (a, b) =>
+        new Date((a as any).date).getTime() -
+        new Date((b as any).date).getTime()
     );
 
     setStatusTrendData(formattedData);
@@ -167,9 +174,15 @@ const Page = () => {
     processStatusTrendData(logs, filter);
   };
 
-  useEffect(() => {
-    handleGetLogs();
-  }, []);
+    useEffect(() => {
+      const source = searchParams.get("source");
+  
+      if (source !== "auth-redirect" && source !== "dashboard") {
+        router.push("/"); 
+      } else {
+        handleGetLogs().finally(() => setIsLoading(false));
+      }
+    }, [searchParams, router]);
 
   const timeOptions = [
     { label: "Today", value: "today" },
@@ -226,7 +239,9 @@ const Page = () => {
         return 0;
     }
   };
-  return (
+  return isLoading ? (
+    <Loader2 />
+  ) : (
     <div className="flex min-h-screen">
       <Sidebar />
 
