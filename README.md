@@ -31,6 +31,7 @@ This provides a contactless, cardless, and secure method of access that improves
 - **Frontend:** React (TypeScript)
 - **Backend:** Golang
 - **Database:** MySQL
+- **Hardware:** C++
 
 ### 🔩 Hardware
 - NodeMCU **ESP8266**
